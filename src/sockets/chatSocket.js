@@ -5,7 +5,7 @@ import prisma from "../config/db.js";
  *  Configura la lógica de los sockets para el chat en tiempo real.
  * - Verifica el token JWT antes de conectar.
  * - Gestiona eventos de mensajes y notificaciones de escritura.
- * 
+ *
  * @param {Object} io - Instancia de Socket.io.
  */
 const chatSocket = (io) => {
@@ -18,7 +18,9 @@ const chatSocket = (io) => {
     const token = socket.handshake.auth.token;
 
     if (!token) {
-      return next(new Error("Autenticación requerida: No se proporcionó el token."));
+      return next(
+        new Error("Autenticación requerida: No se proporcionó el token.")
+      );
     }
 
     try {
@@ -40,27 +42,37 @@ const chatSocket = (io) => {
       }
 
       socket.user = user;
-      socket.token = token; 
+      socket.token = token;
       next();
     } catch (error) {
       if (error.name === "TokenExpiredError") {
-        return next(new Error("Tu sesión ha expirado. Inicia sesión de nuevo."));
+        return next(
+          new Error("Tu sesión ha expirado. Inicia sesión de nuevo.")
+        );
       } else {
         return next(new Error("Token inválido. Inicia sesión de nuevo."));
       }
     }
   });
 
-  const connectedUsers = new Map();  // 🟢 Usuarios conectados
+  const connectedUsers = new Map(); // 🟢 Usuarios conectados
 
   io.on("connection", (socket) => {
-    console.log(`✅ Usuario conectado: ${socket.user.name} (${socket.user.role})`);
+    console.log(
+      `✅ Usuario conectado: ${socket.user.name} (${socket.user.role})`
+    );
 
-    //  Añadir usuario a la lista de conectados
+    // ✅ Agregar usuario a la lista de conectados
     connectedUsers.set(socket.user.id, socket.user);
 
-    //  Notificar a todos los usuarios conectados
-    io.emit("chat:updateParticipants", Array.from(connectedUsers.values()));
+    // 📤 1️⃣ Enviar lista solo al nuevo usuario conectado
+    socket.emit("chat:updateParticipants", Array.from(connectedUsers.values()));
+
+    // 3️⃣ Notificar a TODOS los usuarios sobre el nuevo usuario
+    socket.broadcast.emit(
+      "chat:updateParticipants",
+      Array.from(connectedUsers.values())
+    );
 
     /**
      *  Notificar cuando un usuario está escribiendo.
