@@ -65,54 +65,43 @@ const chatSocket = (io) => {
     // ✅ Agregar usuario a la lista de conectados
     connectedUsers.set(socket.user.id, socket.user);
 
-    // 📤 1️⃣ Enviar lista solo al nuevo usuario conectado
+    // ✅ Emitir la lista de participantes al usuario recién conectado
     socket.emit("chat:updateParticipants", Array.from(connectedUsers.values()));
 
-    // 3️⃣ Notificar a TODOS los usuarios sobre el nuevo usuario
+    socket.on("chat:requestParticipants", () => {
+      socket.emit(
+        "chat:updateParticipants",
+        Array.from(connectedUsers.values())
+      );
+    });
+
+    // ✅ Notificar a los demás usuarios sobre el nuevo usuario
     socket.broadcast.emit(
       "chat:updateParticipants",
       Array.from(connectedUsers.values())
     );
 
-    /**
-     *  Notificar cuando un usuario está escribiendo.
-     */
+    // ✍️ Evento cuando el usuario está escribiendo
     socket.on("chat:typing", () => {
       socket.broadcast.emit("chat:userTyping", { user: socket.user.name });
     });
 
-    /**
-     *  Notificar cuando un usuario deja de escribir.
-     */
+    // ✍️ Evento cuando deja de escribir
     socket.on("chat:stopTyping", () => {
       socket.broadcast.emit("chat:userStopTyping", { user: socket.user.name });
     });
 
-    /**
-     * Enviar un mensaje al chat.
-     * - Verifica que el token siga siendo válido.
-     * - Valida que el mensaje no esté vacío ni supere los 80 caracteres.
-     * - Guarda el mensaje en la base de datos y lo envía a todos los usuarios.
-     */
+    // 📩 Manejo de mensajes
     socket.on("chat:message", async (msg) => {
       try {
-        jwt.verify(socket.token, process.env.JWT_SECRET); // Verificar token
+        jwt.verify(socket.token, process.env.JWT_SECRET);
 
-        //  Validar mensaje vacío
         if (!msg.content || msg.content.trim() === "") {
           return socket.emit("chat:error", {
             error: "🚫 El mensaje no puede estar vacío.",
           });
         }
 
-        //  Validar longitud máxima del mensaje
-        if (msg.content.length > 80) {
-          return socket.emit("chat:error", {
-            error: "🚫 El mensaje no puede tener más de 80 caracteres.",
-          });
-        }
-
-        //  Guardar el mensaje en la base de datos
         const message = await prisma.message.create({
           data: {
             content: msg.content,
@@ -128,33 +117,27 @@ const chatSocket = (io) => {
           },
         });
 
-        //  Enviar el mensaje a todos los usuarios conectados
         io.emit("chat:message", message);
       } catch (error) {
         if (error.name === "TokenExpiredError") {
-          console.error("⏳ Token expirado durante la acción.");
           socket.emit("chat:error", {
             error: "⏳ Tu sesión ha expirado. Inicia sesión de nuevo.",
           });
           socket.disconnect();
         } else {
-          console.error("🛑 Error al enviar mensaje:", error);
           socket.emit("chat:error", {
-            error: "❗ Error al enviar el mensaje. Inténtalo de nuevo.",
+            error: "❗ Error al enviar el mensaje.",
           });
         }
       }
     });
 
-    /**
-     * 🔌 Evento al desconectarse un usuario.
-     * - Se elimina al usuario de la lista de conectados.
-     * - Se notifica a los demás usuarios.
-     */
+    // 🔌 Manejar desconexiones
     socket.on("disconnect", () => {
       connectedUsers.delete(socket.user.id);
       console.log(`🔌 Usuario desconectado: ${socket.user.name}`);
 
+      // Actualizar la lista de participantes
       io.emit("chat:updateParticipants", Array.from(connectedUsers.values()));
     });
   });
