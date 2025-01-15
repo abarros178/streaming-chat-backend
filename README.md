@@ -55,6 +55,8 @@ npm install
 
 Crear un archivo `.env` con el siguiente contenido:
 
+(para la base de datos se debe crear primero el schema chat_db en la instancia de mysql)
+
 ```
 DATABASE_URL="mysql://usuario:contraseña@localhost:3306/chat_db"
 JWT_SECRET="clave_secreta"
