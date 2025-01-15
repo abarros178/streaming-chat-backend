@@ -18,7 +18,7 @@ const io = new Server(server, {
 app.use(cors());             
 app.use(express.json());     
 
-// 📌 Rutas de la API
+//  Rutas de la API
 app.use('/api', router);    
 
 //  Configuración de Socket.IO para chat en tiempo real
