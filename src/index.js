@@ -8,23 +8,23 @@ import chatSocket from './sockets/chatSocket.js';
 
 dotenv.config(); 
 
-const app = express();                  // 📡 Inicializar Express
-const server = http.createServer(app);  // 🔌 Crear servidor HTTP
+const app = express();                  
+const server = http.createServer(app);  
 const io = new Server(server, {
-  cors: { origin: 'http://localhost:3000' }  // 🌐 Permitir conexión desde frontend
+  cors: { origin: 'http://localhost:3000' }  
 });
 
-// 📦 Middlewares
-app.use(cors());             // 🔓 Habilitar CORS
-app.use(express.json());     // 📥 Permitir solicitudes JSON
+//  Middlewares
+app.use(cors());             
+app.use(express.json());     
 
 // 📌 Rutas de la API
 app.use('/api', router);    
 
-// 💬 Configuración de Socket.IO para chat en tiempo real
+//  Configuración de Socket.IO para chat en tiempo real
 chatSocket(io);
 
-// 🚀 Iniciar el servidor solo si no está en modo test
+//  Iniciar el servidor solo si no está en modo test
 const PORT = process.env.PORT || 4000;
 
 if (process.env.NODE_ENV !== 'test') {
