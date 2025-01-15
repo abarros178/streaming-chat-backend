@@ -1,7 +1,7 @@
 import { sendMessage, getMessages } from "../services/chatService.js";
 
 /**
- * 📥 Controlador para enviar un mensaje.
+ *  Controlador para enviar un mensaje.
  * - Valida el contenido.
  * - Llama al servicio para guardar el mensaje.
  */
@@ -18,20 +18,20 @@ export const postMessage = async (req, res) => {
 };
 
 /**
- * 📤 Controlador para obtener todos los mensajes.
+ *  Controlador para obtener todos los mensajes.
  */
 export const fetchMessages = async (req, res) => {
   const user = req.user; // Obtenemos el usuario autenticado
 
   try {
-    // 1️⃣ Validar rol del usuario
+    // Validar rol del usuario
     if (user.role !== "MODERATOR" && user.role !== "STUDENT") {
       return res
         .status(403)
         .json({ error: "No tienes permisos para ver los mensajes." });
     }
 
-    // 2️⃣ Obtener los mensajes si tiene permisos
+    // Obtener los mensajes si tiene permisos
     const messages = await getMessages();
     res.status(200).json(messages);
   } catch (error) {
