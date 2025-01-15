@@ -41,7 +41,7 @@ streaming-chat-backend/
 ### 1. Clonar el repositorio
 
 ```bash
-git clone <url-del-repositorio>
+git clone https://github.com/abarros178/streaming-chat-backend
 cd streaming-chat-backend
 ```
 
